@@ -18,7 +18,7 @@ void string_split(vector<string>& ans, const string& source, const string& split
 }
 
 string get_help(const string& program_name) {
-    string ans = "(Huffman_zip 1.0, using Huffman algorithm to zip files. Usage:\n";
+    string ans = "Huffman Zip 1.0, using Huffman algorithm to zip files.\nUsage:\n";
     string tmp = program_name, t_tmp;
     for (auto i = tmp.rbegin(); i != tmp.rend(); ++i)
         if (*i != '\\' && *i != '/') t_tmp.push_back(*i);
@@ -28,13 +28,18 @@ string get_help(const string& program_name) {
         tmp.push_back(*i);
     ans += tmp + R"( [options] [settings]
 options:
-    -f Specify a file.
-    -c Zip given file.
+    -f Specify input files.
+        When you need to zip files, if more than one file is specified, they will be zipped and packed up.
+        When you need to unzip files, you can only specify one file.
+    -c Zip given files.
     -x Unzip given file.
     -h Show this help.
+    -o Specify the name of output file.
 settings:
-    --size Specify basic unit size used in zip progress. This option will be ignored if "-x" is specified.
-    --branch Specify the number of branches of Huffman tree used in zip progress. This option will be ignored if "-x" is specified.
+    --size Specify basic unit size used in zip progress. This option will be effective only if "-c" is specified.
+        The number following "--size" should be an positive integer.
+    --branch Specify the number of branches of Huffman tree used in zip progress. This option will be effective only if "-c" is specified.
+        The number following "--branch" should be an positive integer.
 )";
     return move(ans);
 }
