@@ -15,8 +15,15 @@ enum class Op_Type {
     Unsure
 };
 
+#define TEST
+
+#ifdef TEST
+#include "test.hpp"
+#endif
+
 int main(int argc, const char* argv[]) {
-    vector<string> input_files;
+#ifndef TEST
+    Vector<string> input_files;
     string output_file;
     Op_Type opType = Op_Type::Unsure;
     int size = 8, branch = 2;
@@ -125,10 +132,8 @@ int main(int argc, const char* argv[]) {
             cout << "Huffman zip: No operation specified." << endl;
             return 1;
     }
-    cout << "Input files: " << endl;
-    for (const auto& i : input_files) {
-        cout << i << endl;
-    }
-    cout << "Output file: " << output_file << endl;
+#else
+    TestPriorityQueue();
+#endif
     return 0;
 }

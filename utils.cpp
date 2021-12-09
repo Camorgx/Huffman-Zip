@@ -5,7 +5,7 @@
 #include "utils.hpp"
 using namespace std;
 
-void string_split(vector<string>& ans, const string& source, const string& split) {
+void string_split(Vector<string>& ans, const string& source, const string& split) {
     auto pos2 = source.find(split);
     int pos1 = 0;
     while(pos2 != string::npos) {
@@ -13,7 +13,7 @@ void string_split(vector<string>& ans, const string& source, const string& split
         pos1 = pos2 + split.size();
         pos2 = source.find(split, pos1);
     }
-    if(pos1 != source.length())
+    if(unsigned(pos1) != source.length())
         ans.push_back(source.substr(pos1));
 }
 
@@ -41,5 +41,5 @@ settings:
     --branch Specify the number of branches of Huffman tree used in zip progress. This option will be effective only if "-c" is specified.
         The number following "--branch" should be an positive integer.
 )";
-    return move(ans);
+    return ans;
 }
