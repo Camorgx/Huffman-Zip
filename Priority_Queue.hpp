@@ -1,13 +1,10 @@
-//
-// Created by 曹高翔 on 2021/12/9.
-//
-
-#ifndef HUFFMAN_ZIP_PRIORITY_QUEUE_HPP
+﻿#ifndef HUFFMAN_ZIP_PRIORITY_QUEUE_HPP
 #define HUFFMAN_ZIP_PRIORITY_QUEUE_HPP
 
 #include "Vector.hpp"
 
 template<typename DataType>
+// Big-root heap.
 class Priority_Queue {
     Vector<DataType> dat = {DataType()};
 
@@ -29,6 +26,13 @@ class Priority_Queue {
         }
     }
 public:
+    Priority_Queue(const DataType* beg, const DataType* en) {
+        for (auto i = beg; i != en; ++i) push(*i);
+    }
+    Priority_Queue(const Vector<DataType>& data) {
+        for (const auto& i : data) push(i);
+    }
+
     DataType& top() const { return dat[1]; }
     void pop() {
         if (empty()) throw VectorError("Heap already empty.");

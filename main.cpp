@@ -1,8 +1,4 @@
-﻿//
-// Created by 曹高翔 on 2021/11/22.
-//
-
-#include "utils.hpp"
+﻿#include "utils.hpp"
 
 #include <cstdio>
 #include <iostream>
@@ -15,7 +11,7 @@ enum class Op_Type {
     Unsure
 };
 
-#define TEST
+//#define TEST
 
 #ifdef TEST
 #include "test.hpp"
@@ -39,9 +35,9 @@ int main(int argc, const char* argv[]) {
         if (argv[i][1] == '-') {
             if (string(argv[i] + 2) == "size") {
                 float tmp;
-                auto res = sscanf(argv[i] + 2, "%f", &tmp);
+                auto res = sscanf(argv[++i] + 2, "%f", &tmp);
                 size = int(tmp);
-                if (res != 1 || tmp < 0 || float(size) != tmp) {
+                if (res != 1 || tmp < 0 || float(size) != tmp || size % 4 != 0) {
                     cout << "Huffman zip: Invalid size number: \"" << argv[i] << '\"' << endl;
                     return 1;
                 }
@@ -114,13 +110,22 @@ int main(int argc, const char* argv[]) {
             break;
         case Op_Type::Zip:
             if (input_files.empty()) {
-                cout << "Huffman zip: No input_files specified." << endl;
+                cout << "Huffman zip: No input files specified." << endl;
                 return 1;
+            }
+            {
+                Vector<Vector<int>> input_data;
+                for (const auto& i : input_files)
+                    input_data.push_back(prepare_for_zip(i, size));
+                for (const auto& i : input_data[0]) {
+                    cout << i << ' ';
+                }
+                cout << endl;
             }
             break;
         case Op_Type::Unzip:
             if (input_files.empty()) {
-                cout << "Huffman zip: No input_files specified." << endl;
+                cout << "Huffman zip: No input file specified." << endl;
                 return 1;
             }
             if (input_files.size() != 1) {

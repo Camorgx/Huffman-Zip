@@ -61,6 +61,7 @@ public:
     }
 
     size_t size() const { return array_size; }
+    bool empty() const { return array_size == 0; }
     DataType* begin() const { return dat; }
     DataType* end() const { return dat + array_size; }
     void push_back(const DataType& x) {
