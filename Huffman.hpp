@@ -8,11 +8,4 @@ struct TreeNode {
      ~TreeNode() { delete[] sons; }
 };
 
-struct MinUnit {
-    unsigned short dat : 4;
-
-    MinUnit() = default;
-    MinUnit(short data) : dat(data) {}
-};
-
 #endif //HUFFMAN_ZIP_HUFFMAN_HPP

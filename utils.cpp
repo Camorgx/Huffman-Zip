@@ -1,6 +1,7 @@
 ﻿#include "utils.hpp"
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 using namespace std;
 
 void string_split(Vector<string>& ans, const string& source, const string& split) {
@@ -46,25 +47,27 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
     filesystem::path file_path(file_name);
     auto f_size = file_size(file_path);
     ifstream fin(file_name, ios::binary | ios::in);
-    Vector<MinUnit> tmp;
-    Vector<int> ans;
+    Vector<int> ans, tmp;
     if (!fin) return ans;
-    int buf_size = 2 * f_size;
-    auto* buf = new MinUnit[buf_size];
-    fin.read((char*)buf, f_size);
-    for (int i = 0; i < buf_size; ++i)
-        tmp.push_back(buf[i]);
+    char* buf = new char[f_size];
+    fin.read(buf, f_size);
+    for (int i = 0; i < f_size; ++i) {
+        tmp.push_back(buf[i] >> 4);
+        tmp.push_back(buf[i] & 0xf);
+    }
     if (!(ans.size() % (basic_unit_size / 4))) {
-        int append_size = (buf_size / (basic_unit_size / 4) + 1) - buf_size;
+        // Count by the number of 4-bit segments.
+        int append_size = (2 * f_size / (basic_unit_size / 4) + 1) - 2 * f_size;
         for (int i = 0; i < append_size; ++i)
-            tmp.push_back(MinUnit(0));
+            tmp.push_back(0);
     }
     for (int i = 0; i < tmp.size(); i += basic_unit_size / 4) {
         int t_tmp = 0;
         for (int j = basic_unit_size / 4 - 1; j >= 0; --j) {
-            t_tmp += int(tmp[i].dat) << j;
+            t_tmp += tmp[i] << j;
         }
         ans.push_back(t_tmp);
     }
+    delete[] buf;
     return ans;
 }

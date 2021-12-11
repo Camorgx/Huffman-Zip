@@ -35,7 +35,7 @@ int main(int argc, const char* argv[]) {
         if (argv[i][1] == '-') {
             if (string(argv[i] + 2) == "size") {
                 float tmp;
-                auto res = sscanf(argv[++i] + 2, "%f", &tmp);
+                auto res = sscanf(argv[++i], "%f", &tmp);
                 size = int(tmp);
                 if (res != 1 || tmp < 0 || float(size) != tmp || size % 4 != 0) {
                     cout << "Huffman zip: Invalid size number: \"" << argv[i] << '\"' << endl;
@@ -44,7 +44,7 @@ int main(int argc, const char* argv[]) {
             }
             else if (string(argv[i] + 2) == "branch") {
                 float tmp;
-                auto res = sscanf(argv[i] + 2, "%f", &tmp);
+                auto res = sscanf(argv[++i], "%f", &tmp);
                 size = int(branch);
                 if (res != 1 || tmp < 0 || float(size) != tmp) {
                     cout << "Huffman zip: Invalid size number: \"" << argv[i] << '\"' << endl;
@@ -104,38 +104,33 @@ int main(int argc, const char* argv[]) {
             }
         }
     }
-    switch (opType) {
-        case Op_Type::Help:
-            cout << get_help(string(argv[0]));
-            break;
-        case Op_Type::Zip:
-            if (input_files.empty()) {
-                cout << "Huffman zip: No input files specified." << endl;
-                return 1;
-            }
-            {
-                Vector<Vector<int>> input_data;
-                for (const auto& i : input_files)
-                    input_data.push_back(prepare_for_zip(i, size));
-                for (const auto& i : input_data[0]) {
-                    cout << i << ' ';
-                }
-                cout << endl;
-            }
-            break;
-        case Op_Type::Unzip:
-            if (input_files.empty()) {
-                cout << "Huffman zip: No input file specified." << endl;
-                return 1;
-            }
-            if (input_files.size() != 1) {
-                cout << "Huffman zip: You can only unzip one file at a time." << endl;
-                return 1;
-            }
-            break;
-        default:
-            cout << "Huffman zip: No operation specified." << endl;
+    if (opType == Op_Type::Help) cout << get_help(string(argv[0]));
+    else if (opType == Op_Type::Zip) {
+        if (input_files.empty()) {
+            cout << "Huffman zip: No input files specified." << endl;
             return 1;
+        }
+        Vector<Vector<int>> input_data;
+        for (const auto& i : input_files)
+            input_data.push_back(prepare_for_zip(i, size));
+        for (const auto& i : input_data[0]) {
+            cout << i << ' ';
+        }
+        cout << endl;
+    }
+    else if (opType == Op_Type::Unzip) {
+        if (input_files.empty()) {
+            cout << "Huffman zip: No input file specified." << endl;
+            return 1;
+        }
+        if (input_files.size() != 1) {
+            cout << "Huffman zip: You can only unzip one file at a time." << endl;
+            return 1;
+        }
+    }
+    else {
+        cout << "Huffman zip: No operation specified." << endl;
+        return 1;
     }
 #else
     TestPriorityQueue();
