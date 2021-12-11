@@ -1,7 +1,7 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
-#include "Priority_Queue.hpp"
+#include "PriorityQueue.hpp"
 
 void TestPriorityQueue() {
     Priority_Queue<int> pq;

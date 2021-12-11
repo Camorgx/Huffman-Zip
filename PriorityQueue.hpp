@@ -5,7 +5,7 @@
 
 template<typename DataType>
 // Big-root heap.
-class Priority_Queue {
+class PriorityQueue {
     Vector<DataType> dat = {DataType()};
 
     void swim(unsigned pos) {
@@ -26,10 +26,10 @@ class Priority_Queue {
         }
     }
 public:
-    Priority_Queue(const DataType* beg, const DataType* en) {
+    PriorityQueue(const DataType* beg, const DataType* en) {
         for (auto i = beg; i != en; ++i) push(*i);
     }
-    Priority_Queue(const Vector<DataType>& data) {
+    PriorityQueue(const Vector<DataType>& data) {
         for (const auto& i : data) push(i);
     }
 
