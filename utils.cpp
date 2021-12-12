@@ -35,7 +35,8 @@ options:
     -c Zip given files.
     -x Unzip given file.
     -h Show this help.
-    -o Specify the name of output file.
+    -o Specify the name of zipped file. This option will be effective only if "-c" is specified.
+    -p Specify the output path. If the path doesn't exist, the program will create it.
 settings:
     --size Specify basic unit size used in zip progress. This option will be effective only if "-c" is specified.
         The number following "--size" should be an positive integer, count by bit. It should be multiple of 4.
@@ -88,10 +89,11 @@ bool pack_up_files(const Vector<std::string>& input_files) {
     for (const auto& item : input_files) {
         try {
             filesystem::path file_path(item);
+            filesystem::file_size(file_path);
         }
         catch (const filesystem::filesystem_error& e) {
             auto err = string(e.what());
-            cerr << "Huffman Zip: " << err.substr(err.find("No")) << endl;
+            cerr << "Huffman Zip: " << err.substr(err.find("file_size:") + 11) << endl;
             return false;
         }
     }
@@ -104,7 +106,7 @@ bool pack_up_files(const Vector<std::string>& input_files) {
         auto file_name = filesystem::relative(file_path).c_str();
         short length = strlen(file_name);
         ifstream fin(item, ios::in | ios::binary);
-        short file_size = filesystem::file_size(file_path);
+        int file_size = filesystem::file_size(file_path);
         char* content = new char[file_size];
         fin.read(content, file_size);
         //Write length of filename.
@@ -115,6 +117,37 @@ bool pack_up_files(const Vector<std::string>& input_files) {
         output.write((char*)(&file_size), sizeof(file_size));
         //Write the content of the file.
         output.write(content, file_size * sizeof(char));
+        fin.close();
     }
+    output.close();
     return true;
+}
+
+void expand_files(const string& unzip_path) {
+    ifstream input("zip_temp.tmp", ios::in | ios::binary);
+    filesystem::path p(unzip_path);
+    if (!filesystem::exists(p))
+        filesystem::create_directory(p);
+    short num_of_input;
+    //Read num of files.
+    input.read((char*)(&num_of_input), sizeof(num_of_input));
+    for (int i = 0; i < num_of_input; ++i) {
+        //Read length of filename.
+        short length_of_name;
+        input.read((char*)(&length_of_name), sizeof(length_of_name));
+        //Read filename.
+        char* filename = new char[length_of_name + 1];
+        input.read(filename, length_of_name * sizeof(char));
+        filename[length_of_name] = '\0';
+        //Read size of the file.
+        int file_size;
+        input.read((char*)(&file_size), sizeof(file_size));
+        //Read the content of the file.
+        char* content = new char[file_size];
+        input.read(content, file_size * sizeof(char));
+        ofstream output(unzip_path + string(filename), ios::out | ios::binary);
+        output.write(content, file_size * sizeof(char));
+        output.close();
+    }
+    input.close();
 }

@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <filesystem>
 using namespace std;
 
 enum class Op_Type {
@@ -20,7 +21,8 @@ enum class Op_Type {
 int main(int argc, const char* argv[]) {
 #ifndef TEST
     Vector<string> input_files;
-    string output_file;
+    string zipped_file_name;
+    string output_path;
     Op_Type opType = Op_Type::Unsure;
     int size = 8, branch = 2;
     bool display_tree = false;
@@ -70,14 +72,14 @@ int main(int argc, const char* argv[]) {
             }
             else if (string(argv[i] + 1) == "o") {
                 if (i == argc - 1) {
-                    cerr << "Huffman Zip: You must specify a input_files after \"-o\"." << endl;
+                    cerr << "Huffman Zip: You must specify a filename after \"-o\"." << endl;
                     return 1;
                 }
-                if (!output_file.empty()) {
+                if (!zipped_file_name.empty()) {
                     cerr << "Huffman Zip: You can only specify the name of output file once." << endl;
                     return 1;
                 }
-                output_file = string(argv[++i]);
+                zipped_file_name = string(argv[++i]);
             }
             else if (string(argv[i] + 1) == "c") {
                 if (opType != Op_Type::Unsure) {
@@ -99,6 +101,17 @@ int main(int argc, const char* argv[]) {
                     return 1;
                 }
                 opType = Op_Type::Help;
+            }
+            else if (string(argv[i] + 1) == "p") {
+                if (i == argc - 1) {
+                    cerr << "Huffman Zip: You must specify a file name after \"-p\"." << endl;
+                    return 1;
+                }
+                if (!zipped_file_name.empty()) {
+                    cerr << "Huffman Zip: You can only specify the path of output files once." << endl;
+                    return 1;
+                }
+                output_path = string(argv[++i]);
             }
             else {
                 cerr << "Huffman Zip: Unrecognized option: \"" << argv[i] << '\"' << endl;
@@ -123,6 +136,22 @@ int main(int argc, const char* argv[]) {
             cerr << "Huffman Zip: You can only unzip one file at a time." << endl;
             return 1;
         }
+        filesystem::path up(output_path);
+        if (filesystem::exists(up) && !is_directory(up)) {
+            cerr << "Huffman Zip: \"" << output_path << "\" is not a path." << endl;
+            return 1;
+        }
+        if (output_path[output_path.size() - 1] != '/'
+            || output_path[output_path.size() - 1] != '\\') {
+#ifdef __linux__
+            output_path.append("/");
+#elif __APPLE__
+            output_path.append("/");
+#else
+            output_path.append("\\");
+#endif
+        }
+        expand_files(output_path);
     }
     else {
         cerr << "Huffman Zip: No operation specified." << endl;
