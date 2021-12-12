@@ -11,7 +11,7 @@ enum class Op_Type {
     Unsure
 };
 
-//#define TEST
+#define TEST
 
 #ifdef TEST
 #include "test.hpp"
@@ -23,6 +23,7 @@ int main(int argc, const char* argv[]) {
     string output_file;
     Op_Type opType = Op_Type::Unsure;
     int size = 8, branch = 2;
+    bool display_tree = false;
     if (argc == 1) {
         cout << get_help(string(argv[0]));
         return 0;
@@ -51,6 +52,7 @@ int main(int argc, const char* argv[]) {
                     return 1;
                 }
             }
+            else if (string(argv[i] + 2) == "display-tree") display_tree = true;
             else {
                 cout << "Huffman Zip: Unrecognized setting: \"" << argv[i] << '\"' << endl;
                 return 1;
@@ -134,6 +136,8 @@ int main(int argc, const char* argv[]) {
     }
 #else
     TestPriorityQueue();
+    cout << endl;
+    TestHashMap();
 #endif
     return 0;
 }

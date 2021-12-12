@@ -39,6 +39,7 @@ settings:
         The number following "--size" should be an positive integer, count by bit. It should be multiple of 4.
     --branch Specify the number of branches of Huffman tree used in zip progress. This option will be effective only if "-c" is specified.
         The number following "--branch" should be an positive integer.
+    --display-tree Display the Huffman tree used to zip files. This option will be effective only if "-c" is specified.
 )";
     return ans;
 }

@@ -26,6 +26,7 @@ class PriorityQueue {
         }
     }
 public:
+    PriorityQueue() = default;
     PriorityQueue(const DataType* beg, const DataType* en) {
         for (auto i = beg; i != en; ++i) push(*i);
     }
