@@ -74,6 +74,8 @@ public:
                 auto* tmp = new DataType[actual_size * 2];
                 for (unsigned i = 0; i < actual_size; ++i)
                     tmp[i] = std::move(dat[i]);
+                delete[] dat;
+                dat = tmp;
                 actual_size *= 2;
             }
             catch (std::runtime_error&) {
@@ -93,6 +95,8 @@ public:
                 for (unsigned i = 0; i < actual_size; ++i)
                     tmp[i] = std::move(dat[i]);
                 actual_size *= 2;
+                delete[] dat;
+                dat = tmp;
             }
             catch (std::runtime_error&) {
                 throw VectorError("Failed to allocate memory.");

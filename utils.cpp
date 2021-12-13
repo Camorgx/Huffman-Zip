@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <utility>
 using namespace std;
 
 void string_split(Vector<string>& ans, const string& source, const string& split) {
@@ -44,6 +45,7 @@ settings:
     --branch Specify the number of branches of Huffman tree used in zip progress. This option will be effective only if "-c" is specified.
         The number following "--branch" should be an positive integer between 2 and 127.
     --display-tree Display the Huffman tree used to zip files. This option will be effective only if "-c" is specified.
+        The tree will be displayed in the form of an embedded table.
 )";
     return ans;
 }
@@ -56,13 +58,7 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
     if (!fin) return ans;
     char* buf = new char[f_size];
     fin.read(buf, f_size);
-    for (int i = 0; i < f_size; ++i) {
-        cout << int(buf[i]) << ' ';
-    }
-    cout << endl;
-    for (int i = 0; i < f_size; ++i) {
-        cout << int(buf[i]) << endl;
-        cout << (buf[i] >> 4) << ' ' << (buf[i] & 0xf) << endl;
+    for (unsigned long i = 0; i < f_size; ++i) {
         tmp.push_back(int(buf[i] >> 4));
         tmp.push_back(int(buf[i] & 0xf));
     }
@@ -110,7 +106,7 @@ bool pack_up_files(const Vector<std::string>& input_files) {
     output.write((char*)(&num_of_input), sizeof(num_of_input));
     for (const auto& item : input_files) {
         filesystem::path file_path(item);
-        auto file_name = filesystem::relative(file_path).c_str();
+        auto file_name = (const char*)filesystem::relative(file_path).c_str();
         short length = strlen(file_name);
         ifstream fin(item, ios::in | ios::binary);
         int file_size = filesystem::file_size(file_path);
@@ -169,10 +165,22 @@ int Hash(int key) {
     return key;
 }
 
+void get_huffman_code(TreeNode* root, HashMap<int, string>& ans, const string& current = "") {
+    if (!root) return;
+    if (root->deg == 0) {
+        ans.insert(root->data.word, current);
+        return;
+    }
+    for (int i = 0; i < root->deg; ++i)
+        get_huffman_code(root->sons[i], ans, current + char(i));
+}
+
 HashMap<int, string> get_zip_dictionary(
         PriorityQueue_Pointers<TreeNode*>& word_freq, bool output_tree, int branch) {
     auto tree = build_tree(word_freq, branch);
     if (output_tree) display_tree(tree);
+    HashMap<int, string> ans;
+    get_huffman_code(tree, ans);
     destruct_tree(tree);
-    return {};
+    return ans;
 }

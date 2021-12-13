@@ -13,7 +13,7 @@ class HashMap {
         HashNode* next = nullptr;
 
         HashNode() = default;
-        HashNode(int key, int value) : key(key), value(value) {}
+        HashNode(KeyType key, ValueType value) : key(key), value(value) {}
     };
     static const int table_size = 256;
     HashNode* table[table_size] = {nullptr};
@@ -54,7 +54,7 @@ public:
         }
     }
 
-    HashNode* insert(KeyType key, KeyType value) {
+    HashNode* insert(KeyType key, ValueType value) {
         //The function Hash must have return type int (or unsigned).
         int index = Hash(key) % table_size;
         auto tmp = new HashNode(key, value);
