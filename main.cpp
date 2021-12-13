@@ -126,6 +126,9 @@ int main(int argc, const char* argv[]) {
             return 1;
         }
         if (!pack_up_files(input_files)) return 1;
+        auto data = prepare_for_zip("zip_temp.tmp", size);
+        auto word_frequency = get_freq(data);
+
     }
     else if (opType == Op_Type::Unzip) {
         if (input_files.empty()) {

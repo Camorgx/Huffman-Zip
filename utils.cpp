@@ -77,7 +77,7 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
 }
 
 PriorityQueue<TreeNode::NodeData> get_freq(const Vector<int> &data) {
-    HashMap map;
+    HashMap<int, int> map;
     PriorityQueue<TreeNode::NodeData> ans;
     for (const auto &item: data) ++map[item];
     for (const auto &item: map)
@@ -150,4 +150,14 @@ void expand_files(const string& unzip_path) {
         output.close();
     }
     input.close();
+}
+
+int Hash(int key) {
+    key = ~key + (key << 15); // key = (key << 15) - key - 1;
+    key = key ^ (key >> 12);
+    key = key + (key << 2);
+    key = key ^ (key >> 4);
+    key = (key + (key << 3)) + (key << 11);
+    key = key ^ (key >> 16);
+    return key;
 }

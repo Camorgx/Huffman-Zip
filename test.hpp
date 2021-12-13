@@ -25,7 +25,7 @@ void TestPriorityQueue() {
 #include "HashMap.hpp"
 
 void TestHashMap() {
-    HashMap hashMap;
+    HashMap<int, int> hashMap;
     hashMap[1] = 2; hashMap[12] = 3; hashMap[13] = 4;
     for (const auto& item : hashMap)
         std::cout << item.key << ' ' << item.value << std::endl;
