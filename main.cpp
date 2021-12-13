@@ -128,7 +128,7 @@ int main(int argc, const char* argv[]) {
         if (!pack_up_files(input_files)) return 1;
         auto data = prepare_for_zip("zip_temp.tmp", size);
         auto word_frequency = get_freq(data);
-
+        auto zip_dictionary = get_zip_dictionary(word_frequency, display_tree, branch);
     }
     else if (opType == Op_Type::Unzip) {
         if (input_files.empty()) {

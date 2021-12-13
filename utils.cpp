@@ -1,5 +1,6 @@
 ﻿#include "utils.hpp"
 #include "HashMap.hpp"
+#include "Huffman.hpp"
 #include <filesystem>
 #include <fstream>
 #include <cstring>
@@ -39,9 +40,9 @@ options:
     -p Specify the output path. If the path doesn't exist, the program will create it.
 settings:
     --size Specify basic unit size used in zip progress. This option will be effective only if "-c" is specified.
-        The number following "--size" should be an positive integer, count by bit. It should be multiple of 4.
+        The number following "--size" should be an positive integer, count by bit. It should be multiple of 4 and between 4 and 32.
     --branch Specify the number of branches of Huffman tree used in zip progress. This option will be effective only if "-c" is specified.
-        The number following "--branch" should be an positive integer.
+        The number following "--branch" should be an positive integer between 2 and 127.
     --display-tree Display the Huffman tree used to zip files. This option will be effective only if "-c" is specified.
 )";
     return ans;
@@ -55,9 +56,15 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
     if (!fin) return ans;
     char* buf = new char[f_size];
     fin.read(buf, f_size);
-    for (unsigned long i = 0; i < f_size; ++i) {
-        tmp.push_back(buf[i] >> 4);
-        tmp.push_back(buf[i] & 0xf);
+    for (int i = 0; i < f_size; ++i) {
+        cout << int(buf[i]) << ' ';
+    }
+    cout << endl;
+    for (int i = 0; i < f_size; ++i) {
+        cout << int(buf[i]) << endl;
+        cout << (buf[i] >> 4) << ' ' << (buf[i] & 0xf) << endl;
+        tmp.push_back(int(buf[i] >> 4));
+        tmp.push_back(int(buf[i] & 0xf));
     }
     if (!(ans.size() % (basic_unit_size / 4))) {
         // Count by the number of 4-bit segments.
@@ -65,10 +72,10 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
         for (int i = 0; i < append_size; ++i)
             tmp.push_back(0);
     }
-    for (size_t i = 0; i < tmp.size(); i += basic_unit_size / 4) {
+    for (size_t i = 0; i < tmp.size();) {
         int t_tmp = 0;
         for (int j = basic_unit_size / 4 - 1; j >= 0; --j) {
-            t_tmp += tmp[i] << j;
+            t_tmp += tmp[i++] << (j * 4);
         }
         ans.push_back(t_tmp);
     }
@@ -76,12 +83,12 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
     return ans;
 }
 
-PriorityQueue<TreeNode::NodeData> get_freq(const Vector<int> &data) {
+PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<int> &data, int branch) {
     HashMap<int, int> map;
-    PriorityQueue<TreeNode::NodeData> ans;
+    PriorityQueue_Pointers<TreeNode*> ans;
     for (const auto &item: data) ++map[item];
     for (const auto &item: map)
-        ans.push(TreeNode::NodeData(item.key, -item.value));
+        ans.push(new TreeNode(item.key, -item.value, branch));
     return ans;
 }
 
@@ -160,4 +167,12 @@ int Hash(int key) {
     key = (key + (key << 3)) + (key << 11);
     key = key ^ (key >> 16);
     return key;
+}
+
+HashMap<int, string> get_zip_dictionary(
+        PriorityQueue_Pointers<TreeNode*>& word_freq, bool output_tree, int branch) {
+    auto tree = build_tree(word_freq, branch);
+    if (output_tree) display_tree(tree);
+    destruct_tree(tree);
+    return {};
 }
