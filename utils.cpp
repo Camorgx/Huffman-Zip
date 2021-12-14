@@ -37,8 +37,11 @@ options:
     -c Zip given files.
     -x Unzip given file.
     -h Show this help.
-    -o Specify the name of zipped file. This option will be effective only if "-c" is specified.
-    -p Specify the output path. If the path doesn't exist, the program will create it.
+    -o Specify the name of zipped file.
+        This option will be effective only if "-c" is specified. You can also specify output path without "-p".
+    -p Specify the output path.
+        If the path doesn't exist, the program will create it. Default output path is current path.
+        If "-o" also specified output path, it will be overwritten.
 settings:
     --size Specify basic unit size used in zip progress. This option will be effective only if "-c" is specified.
         The number following "--size" should be an positive integer, count by bit. It should be multiple of 4 and between 4 and 32.
@@ -46,6 +49,7 @@ settings:
         The number following "--branch" should be an positive integer between 2 and 127.
     --display-tree Display the Huffman tree used to zip files. This option will be effective only if "-c" is specified.
         The tree will be displayed in the form of an embedded table.
+    --no-zip If specified, the program will only pack the files up. This setting will disable "--display-tree".
 )";
     return ans;
 }
@@ -88,7 +92,7 @@ PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<int> &data, int branch) 
     return ans;
 }
 
-bool pack_up_files(const Vector<std::string>& input_files) {
+bool pack_up_files(const Vector<string>& input_files, const string& filename) {
     for (const auto& item : input_files) {
         try {
             filesystem::path file_path(item);
@@ -100,7 +104,7 @@ bool pack_up_files(const Vector<std::string>& input_files) {
             return false;
         }
     }
-    ofstream output("zip_temp.tmp", ios::out | ios::binary);
+    ofstream output(filename, ios::out | ios::binary);
     short num_of_input = input_files.size();
     //Write num of files.
     output.write((char*)(&num_of_input), sizeof(num_of_input));

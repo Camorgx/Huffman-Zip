@@ -12,8 +12,8 @@ void string_split(Vector<std::string>& ans, const std::string& source, const std
 //Return help document of the program.
 std::string get_help(const std::string& program_name);
 
-//Pack up files to a single file with the name "zip_temp.tmp"
-bool pack_up_files(const Vector<std::string>& input_files);
+//Pack up files to a single file.
+bool pack_up_files(const Vector<std::string>& input_file, const std::string& filename = "zip_temp.tmp");
 
 //Expand packed files.
 void expand_files(const std::string& unzip_path);
