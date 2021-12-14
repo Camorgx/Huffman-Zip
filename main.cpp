@@ -169,6 +169,8 @@ int main(int argc, const char* argv[]) {
     TestPriorityQueue();
     cout << endl;
     TestHashMap();
+    cout << endl;
+    TestBitArray();
 #endif
     return 0;
 }

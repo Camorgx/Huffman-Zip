@@ -108,6 +108,7 @@ public:
         if (array_size) --array_size;
         else throw VectorError("Array already empty.");
     }
+    const char* c_array() const { return dat; }
 };
 
 #endif // !Vector_hpp

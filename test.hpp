@@ -31,4 +31,21 @@ void TestHashMap() {
         std::cout << item.key << ' ' << item.value << std::endl;
 }
 
+#include "BitArray.hpp"
+
+void TestBitArray() {
+    BitArray bitArray(3);
+    bitArray.push_back(1); bitArray.push_back(1); bitArray.push_back(4);
+    bitArray.push_back(5); bitArray.push_back(1); bitArray.push_back(4);
+    std::cout << bitArray.size() << std::endl;
+    for (unsigned i = 0; i < bitArray.size(); ++i)
+        std::cout << int(bitArray[i]) << ' ';
+    std::cout << std::endl;
+    bitArray.set_value(2, 5); bitArray.set_value(3, 6);
+    bitArray.set_value(1, 2);
+    for (unsigned i = 0; i < bitArray.size(); ++i)
+        std::cout << int(bitArray[i]) << ' ';
+    std::cout << std::endl;
+}
+
 #endif //!TEST_HPP
