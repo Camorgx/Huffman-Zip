@@ -19,14 +19,17 @@ bool pack_up_files(const Vector<std::string>& input_file, const std::string& fil
 void expand_files(const std::string& unzip_path);
 
 //Get data from the input file, store it to an int array and return the array.
-Vector<int> prepare_for_zip(const std::string& file_name, unsigned basic_unit_size = 8);
+Vector<unsigned> prepare_for_zip(const std::string& file_name, unsigned basic_unit_size, int& append_size);
 
 //Get the frequency of each word and insert their opposite number to a heap.
 //This is because self-written PriorityQueue is a big-root heap.
-PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<int>& data, int branch = 2);
+PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<unsigned>& data, int branch = 2);
 
 //Get the map relationship of word and its Huffman Code.
-HashMap<int, std::string> get_zip_dictionary(PriorityQueue_Pointers<TreeNode*>& word_freq,
+HashMap<unsigned, std::string> get_zip_dictionary(PriorityQueue_Pointers<TreeNode*>& word_freq,
                                              bool output_tree = false, int branch = 2);
+
+bool zip_files(const std::string& output_file, HashMap<unsigned, std::string>& dict,
+               const Vector<unsigned>& data, int branch = 2, short basic_unit_size = 8, int append_size = 0);
 
 #endif //HUFFMAN_ZIP_UTILS_HPP

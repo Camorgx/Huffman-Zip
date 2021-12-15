@@ -17,7 +17,7 @@ size_t BitArray::size() const {
     return ((data.size() - 1) * 8 + bit_left) / item_width;
 }
 
-void BitArray::set_value(int index, int value) {
+void BitArray::set_value(int index, unsigned value) {
     if (index >= int(size()))
         throw VectorError("Array out of bounds.");
     int pos = (index + 1) * item_width / 8;
@@ -32,7 +32,7 @@ void BitArray::set_value(int index, int value) {
     data[pos] = tmp;
 }
 
-void BitArray::push_back(int value) {
+void BitArray::push_back(unsigned value) {
     if (bit_left + item_width <= 8) {
         data[data.size() - 1] += value << (8 - bit_left - item_width);
         bit_left += item_width;

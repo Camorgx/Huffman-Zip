@@ -20,8 +20,8 @@ public:
 
     size_t size() const;
     bool empty() const;
-    void set_value(int index, int value);
-    void push_back(int value);
+    void set_value(int index, unsigned value);
+    void push_back(unsigned value);
     void pop_back();
     const auto& get_data() const { return data; }
 };

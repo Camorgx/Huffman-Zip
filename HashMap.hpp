@@ -15,6 +15,7 @@ class HashMap {
         HashNode() = default;
         HashNode(KeyType key, ValueType value) : key(key), value(value) {}
     };
+    size_t actual_size = 0;
     static const int table_size = 256;
     HashNode* table[table_size] = {nullptr};
 public:
@@ -55,6 +56,7 @@ public:
     }
 
     HashNode* insert(KeyType key, ValueType value) {
+        ++actual_size;
         //The function Hash must have return type int (or unsigned).
         int index = Hash(key) % table_size;
         auto tmp = new HashNode(key, value);
@@ -63,6 +65,7 @@ public:
         return tmp;
     }
     void del(KeyType key) {
+        --actual_size;
         //The function Hash must have return type int (or unsigned).
         int index = Hash(key) % table_size;
         auto cur = table[index];
@@ -99,6 +102,7 @@ public:
     }
     iterator end() { return {-1, nullptr, table}; }
     bool empty() { return begin().data; }
+    size_t size() const { return actual_size; }
 
     ValueType& operator[](KeyType key) {
         auto ans = find(key);

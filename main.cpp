@@ -127,7 +127,7 @@ int main(int argc, const char* argv[]) {
     }
     filesystem::path up(output_path);
     if (filesystem::exists(up) && !is_directory(up)) {
-        cerr << "Huffman Zip: \"" << output_path << "\" is not a path." << endl;
+        cerr << "Huffman Zip: \"" << output_path << "\" is not a directory." << endl;
         return 1;
     }
     if (output_path[output_path.size() - 1] != '/'
@@ -146,9 +146,11 @@ int main(int argc, const char* argv[]) {
         }
         if (no_zip && !pack_up_files(input_files, zipped_file_name)) return 1;
         if (!pack_up_files(input_files)) return 1;
-        auto data = prepare_for_zip("zip_temp.tmp", size);
+        int append_size = 0;
+        auto data = prepare_for_zip("zip_temp.tmp", size, append_size);
         auto word_frequency = get_freq(data);
         auto zip_dictionary = get_zip_dictionary(word_frequency, display_tree, branch);
+        if (!zip_files(zipped_file_name, zip_dictionary, data, branch, size, append_size)) return 1;
     }
     else if (opType == Op_Type::Unzip) {
         if (input_files.empty()) {

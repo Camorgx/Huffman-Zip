@@ -8,10 +8,11 @@ struct TreeNode {
     int size = 2;
     int deg = 0;
     struct NodeData {
-        int word = 0, freq = 0;
+        unsigned word = 0;
+        int freq = 0;
 
         NodeData() = default;
-        NodeData(int word, int freq) : word(word), freq(freq) {}
+        NodeData(unsigned word, int freq) : word(word), freq(freq) {}
     } data;
     TreeNode** sons = new TreeNode*[2];
 
@@ -19,7 +20,7 @@ struct TreeNode {
     explicit TreeNode(const NodeData& data, int size = 2) : size(size), data(data) {
         sons = new TreeNode*[deg];
     }
-    TreeNode(int word, int freq, int size = 2) : size(size), data(word, freq) {
+    TreeNode(unsigned word, int freq, int size = 2) : size(size), data(word, freq) {
         sons = new TreeNode*[deg];
     }
     ~TreeNode() { delete[] sons; }

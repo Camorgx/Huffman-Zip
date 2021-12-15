@@ -45,7 +45,7 @@ public:
         if (this == &b) return *this;
         dat = new DataType[actual_size = b.actual_size];
         array_size = b.array_size;
-        for (int i = 0; i < array_size; ++i) dat[i] = b[i];
+        for (unsigned i = 0; i < array_size; ++i) dat[i] = b[i];
         return *this;
     }
     bool operator==(const Vector<DataType>& b) const {
@@ -108,7 +108,7 @@ public:
         if (array_size) --array_size;
         else throw VectorError("Array already empty.");
     }
-    const char* c_array() const { return dat; }
+    const DataType* c_array() const { return dat; }
 };
 
 #endif // !Vector_hpp

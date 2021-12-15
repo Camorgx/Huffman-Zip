@@ -1,11 +1,13 @@
 ﻿#include "utils.hpp"
 #include "HashMap.hpp"
 #include "Huffman.hpp"
+#include "BitArray.hpp"
 #include <filesystem>
 #include <fstream>
 #include <cstring>
 #include <iostream>
 #include <utility>
+#include <cmath>
 using namespace std;
 
 void string_split(Vector<string>& ans, const string& source, const string& split) {
@@ -54,21 +56,22 @@ settings:
     return ans;
 }
 
-Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_unit_size) {
+Vector<unsigned> prepare_for_zip(const string& file_name, const unsigned basic_unit_size,
+                            int& append_size) {
     filesystem::path file_path(file_name);
     auto f_size = file_size(file_path);
     ifstream fin(file_name, ios::binary | ios::in);
-    Vector<int> ans, tmp;
+    Vector<unsigned> ans, tmp;
     if (!fin) return ans;
     char* buf = new char[f_size];
     fin.read(buf, f_size);
     for (unsigned long i = 0; i < f_size; ++i) {
-        tmp.push_back(int(buf[i] >> 4));
-        tmp.push_back(int(buf[i] & 0xf));
+        tmp.push_back(unsigned(buf[i] >> 4));
+        tmp.push_back(unsigned(buf[i] & 0xf));
     }
     if (!(ans.size() % (basic_unit_size / 4))) {
         // Count by the number of 4-bit segments.
-        int append_size = (2 * f_size / (basic_unit_size / 4) + 1) - 2 * f_size;
+        append_size = (2 * f_size / (basic_unit_size / 4) + 1) - 2 * f_size;
         for (int i = 0; i < append_size; ++i)
             tmp.push_back(0);
     }
@@ -80,11 +83,12 @@ Vector<int> prepare_for_zip(const std::string& file_name, const unsigned basic_u
         ans.push_back(t_tmp);
     }
     delete[] buf;
+    fin.close();
     return ans;
 }
 
-PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<int> &data, int branch) {
-    HashMap<int, int> map;
+PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<unsigned> &data, int branch) {
+    HashMap<unsigned, int> map;
     PriorityQueue_Pointers<TreeNode*> ans;
     for (const auto &item: data) ++map[item];
     for (const auto &item: map)
@@ -169,7 +173,7 @@ int Hash(int key) {
     return key;
 }
 
-void get_huffman_code(TreeNode* root, HashMap<int, string>& ans, const string& current = "") {
+void get_huffman_code(TreeNode* root, HashMap<unsigned, string>& ans, const string& current = "") {
     if (!root) return;
     if (root->deg == 0) {
         ans.insert(root->data.word, current);
@@ -179,12 +183,59 @@ void get_huffman_code(TreeNode* root, HashMap<int, string>& ans, const string& c
         get_huffman_code(root->sons[i], ans, current + char(i));
 }
 
-HashMap<int, string> get_zip_dictionary(
+HashMap<unsigned, string> get_zip_dictionary(
         PriorityQueue_Pointers<TreeNode*>& word_freq, bool output_tree, int branch) {
     auto tree = build_tree(word_freq, branch);
     if (output_tree) display_tree(tree);
-    HashMap<int, string> ans;
+    HashMap<unsigned, string> ans;
     get_huffman_code(tree, ans);
     destruct_tree(tree);
     return ans;
+}
+
+bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
+               const Vector<unsigned>& data, int branch, short basic_unit_size, int append_size) {
+    filesystem::path p(output_file);
+    if (filesystem::exists(p) && is_directory(p)) {
+        cerr << "Huffman Zip: \"" << output_file << "\" is a directory." << endl;
+        return false;
+    }
+    auto parent_path = p.parent_path();
+    if (!parent_path.string().empty() && !filesystem::exists(parent_path))
+        filesystem::create_directory(parent_path);
+    ofstream output(output_file, ios::out | ios::binary);
+    //Write basic unit size.
+    output.write((char*)(&basic_unit_size), sizeof(basic_unit_size));
+    //Write code bit-width.
+    auto code_bit_width = short(ceil(log2(branch)));
+    output.write((char*)(&code_bit_width), sizeof(code_bit_width));
+    //Write append size.
+    output.write((char*)(&append_size), sizeof(append_size));
+    BitArray out(code_bit_width);
+    for (const auto& word : data) {
+        const auto& code = dict[word];
+        for (const auto& item : code) out.push_back(item);
+    }
+    //Write size of the zip dictionary.
+    unsigned dict_size = dict.size();
+    output.write((char*)(&dict_size), sizeof(dict_size));
+    //Write the zip dictionary.
+    for (const auto& word : dict) {
+        //Write the size of the Huffman code of the word.
+        unsigned code_size = word.value.size();
+        output.write((char*)(&code_size), sizeof(code_size));
+        //Write the code.
+        BitArray code(code_bit_width);
+        for (const auto& item : word.value) code.push_back(item);
+        auto code_out = code.get_data();
+        output.write((char*)code_out.c_array(), code_out.size() * sizeof(char));
+        //Write the word.
+        BitArray ori_word(4);
+        for (int i = basic_unit_size / 4 - 1; i >= 0; --i) {
+            unsigned tmp = (word.key >> (i * 4)) - word.key % (1 << ((i - 1) * 4));
+            ori_word.push_back(tmp);
+        }
+    }
+    output.close();
+    return true;
 }
