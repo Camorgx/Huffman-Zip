@@ -1,6 +1,6 @@
 #include "BitArray.hpp"
 
-char BitArray::operator[](int index) {
+char BitArray::operator[](int index) const {
     if (index >= int(size()))
         throw VectorError("Array out of bounds.");
     int pos = (index + 1) * item_width / 8;
@@ -36,10 +36,6 @@ void BitArray::push_back(unsigned value) {
     if (bit_left + item_width <= 8) {
         data[data.size() - 1] += value << (8 - bit_left - item_width);
         bit_left += item_width;
-        if (bit_left == 8) {
-            data.push_back(0);
-            bit_left = 0;
-        }
     }
     else {
         data[data.size() - 1] += value >> (bit_left + item_width - 8);

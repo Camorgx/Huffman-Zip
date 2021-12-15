@@ -10,7 +10,13 @@
 #include <cmath>
 using namespace std;
 
+//These symbols are used for debug.
+
+//If defined, some status record will be displayed on the terminal.
 //#define DEBUG_UTILS
+
+//If defined, head of the zip file will not be written.
+//#define NO_HEAD
 
 void string_split(Vector<string>& ans, const string& source, const string& split) {
     auto pos2 = source.find(split);
@@ -216,44 +222,61 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
     if (!parent_path.string().empty() && !filesystem::exists(parent_path))
         filesystem::create_directory(parent_path);
     ofstream output(output_file, ios::out | ios::binary);
-    //Write flag.
     unsigned char zipped = 1;
-    output.write((char*)(&zipped), sizeof(zipped));
-    //Write basic unit size.
-    output.write((char*)(&basic_unit_size), sizeof(basic_unit_size));
-    //Write code bit-width.
     auto code_bit_width = short(ceil(log2(branch)));
-    output.write((char*)(&code_bit_width), sizeof(code_bit_width));
-    //Write append size.
-    output.write((char*)(&append_size), sizeof(append_size));
-    //Write size of the zip dictionary.
     unsigned dict_size = dict.size();
+#ifndef NO_HEAD
+    //Write zip head.
+    output.write((char*)(&zipped), sizeof(zipped));
+    output.write((char*)(&basic_unit_size), sizeof(basic_unit_size));
+    output.write((char*)(&code_bit_width), sizeof(code_bit_width));
+    output.write((char*)(&append_size), sizeof(append_size));
     output.write((char*)(&dict_size), sizeof(dict_size));
+#endif //!NO_HEAD
+#ifdef DEBUG_UTILS
+    cout << "append_size: " << append_size << endl;
+    cout << "dict_size:" << dict_size << endl;
+#endif //DEBUG_UTILS
     //Write the zip dictionary.
     for (const auto& word : dict) {
         BitArray code(code_bit_width);
         for (const auto& item : word.value) code.push_back(item);
         auto code_out = code.get_data();
-        //Write the size of the BitArray of the code.
         unsigned size = code_out.size();
-        output.write((char*)(&size), sizeof(size));
-        //Write bit_left of the BitArray.
-        output.write((char*)(&code.bit_left), sizeof(code.bit_left));
-        //Write the code.
-        output.write((char*)code_out.c_array(), code_out.size() * sizeof(char));
         BitArray ori_word(4);
         for (int i = basic_unit_size / 4 - 1; i >= 0; --i) {
             unsigned tmp = (word.key >> (i * 4)) - ((word.key >> ((i + 1) * 4)) << ((i + 1) * 4));
             ori_word.push_back(tmp);
         }
         const auto& out_word = ori_word.get_data();
-        //Write the size of the BitArray of the word.
         unsigned word_size = out_word.size();
+#ifndef NO_HEAD
+        output.write((char*)(&size), sizeof(size));
+        output.write((char*)(&code.bit_left), sizeof(code.bit_left));
+        output.write((char*)code_out.c_array(), code_out.size() * sizeof(char));
         output.write((char*)(&word_size), sizeof(word_size));
-        //Write bit_left of the BitArray.
         output.write((char*)(&ori_word.bit_left), sizeof(ori_word.bit_left));
-        //Write the word.
         output.write((char*)out_word.c_array(), out_word.size() * sizeof(char));
+#endif //!NO_HEAD
+#ifdef DEBUG_UTILS
+        cout << "word: " << word.key << '\t';
+        cout << "word_size: " << word_size << '\t';
+        cout << "word_bit_left: " << ori_word.bit_left << '\t';
+        cout << "out_word: ";
+        for (const auto& i : out_word)
+            cout << int(i) << ' ';
+        cout << "\n\n";
+        cout << "code: ";
+        for (const auto& i : word.value)
+            cout << int(i);
+        cout << '\t';
+        cout << "code_size: " << size << '\t';
+        cout << "bit_left: " << code.bit_left << '\t';
+        cout << "code_out: ";
+        for (const auto& i : code_out)
+            cout << int(i) << ' ';
+        cout << endl;
+#endif //DEBUG_UTILS
     }
     BitArray out(code_bit_width);
     for (const auto& word : data) {
