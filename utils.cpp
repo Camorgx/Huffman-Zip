@@ -10,6 +10,8 @@
 #include <cmath>
 using namespace std;
 
+//#define DEBUG_UTILS
+
 void string_split(Vector<string>& ans, const string& source, const string& split) {
     auto pos2 = source.find(split);
     int pos1 = 0;
@@ -69,9 +71,9 @@ Vector<unsigned> prepare_for_zip(const string& file_name, const unsigned basic_u
         tmp.push_back(unsigned(buf[i] >> 4));
         tmp.push_back(unsigned(buf[i] & 0xf));
     }
-    if (!(ans.size() % (basic_unit_size / 4))) {
+    if ((tmp.size() % (basic_unit_size / 4))) {
         // Count by the number of 4-bit segments.
-        append_size = (2 * f_size / (basic_unit_size / 4) + 1) - 2 * f_size;
+        append_size = ((2 * f_size / (basic_unit_size / 4)) + 1) * (basic_unit_size / 4) - 2 * f_size;
         for (int i = 0; i < append_size; ++i)
             tmp.push_back(0);
     }
@@ -84,6 +86,11 @@ Vector<unsigned> prepare_for_zip(const string& file_name, const unsigned basic_u
     }
     delete[] buf;
     fin.close();
+#ifdef DEBUG_UTILS
+    for (const auto& i : ans)
+        cout << i << ' ';
+    cout << endl;
+#endif //DEBUG_UTILS
     return ans;
 }
 
@@ -91,8 +98,12 @@ PriorityQueue_Pointers<TreeNode*> get_freq(const Vector<unsigned> &data, int bra
     HashMap<unsigned, int> map;
     PriorityQueue_Pointers<TreeNode*> ans;
     for (const auto &item: data) ++map[item];
-    for (const auto &item: map)
+    for (const auto &item: map) {
         ans.push(new TreeNode(item.key, -item.value, branch));
+#ifdef DEBUG_UTILS
+        cout << item.key << ' ' << item.value << endl;
+#endif //DEBUG_UTILS
+    }
     return ans;
 }
 
@@ -109,6 +120,9 @@ bool pack_up_files(const Vector<string>& input_files, const string& filename) {
         }
     }
     ofstream output(filename, ios::out | ios::binary);
+    //Write flag.
+    unsigned char not_zipped = 0;
+    output.write((char*)(&not_zipped), sizeof(not_zipped));
     short num_of_input = input_files.size();
     //Write num of files.
     output.write((char*)(&num_of_input), sizeof(num_of_input));
@@ -190,6 +204,14 @@ HashMap<unsigned, string> get_zip_dictionary(
     HashMap<unsigned, string> ans;
     get_huffman_code(tree, ans);
     destruct_tree(tree);
+#ifdef DEBUG_UTILS
+    for (const auto& i : ans) {
+        cout << i.key << ' ';
+        for (const auto& j : i.value)
+            cout << int(j);
+        cout << endl;
+    }
+#endif //DEBUG_UTILS
     return ans;
 }
 
@@ -204,6 +226,9 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
     if (!parent_path.string().empty() && !filesystem::exists(parent_path))
         filesystem::create_directory(parent_path);
     ofstream output(output_file, ios::out | ios::binary);
+    //Write flag.
+    unsigned char zipped = 1;
+    output.write((char*)(&zipped), sizeof(zipped));
     //Write basic unit size.
     output.write((char*)(&basic_unit_size), sizeof(basic_unit_size));
     //Write code bit-width.
