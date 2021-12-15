@@ -2,8 +2,7 @@
 #define HUFFMAN_ZIP_HASHMAP_HPP
 
 #include "Vector.hpp"
-
-extern int Hash(int key);
+#include "Hash.hpp"
 
 template<typename KeyType, typename ValueType>
 class HashMap {

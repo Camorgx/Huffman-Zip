@@ -161,7 +161,7 @@ int main(int argc, const char* argv[]) {
             cerr << "Huffman Zip: You can only unzip one file at a time." << endl;
             return 1;
         }
-        expand_files(output_path);
+        if (!unzip_file(input_files[0], output_path)) return 1;
     }
     else {
         cerr << "Huffman Zip: No operation specified." << endl;

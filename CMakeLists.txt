@@ -10,4 +10,4 @@ elseif (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif ()
 
 add_executable(Huffman_Zip main.cpp utils.cpp "Huffman.cpp" Vector.hpp
-        PriorityQueue.hpp Queue.hpp HashMap.hpp test.hpp BitArray.cpp)
+        PriorityQueue.hpp Queue.hpp HashMap.hpp test.hpp BitArray.cpp Hash.cpp Hash.hpp)

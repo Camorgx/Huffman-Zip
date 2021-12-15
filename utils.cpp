@@ -148,8 +148,8 @@ bool pack_up_files(const Vector<string>& input_files, const string& filename) {
     return true;
 }
 
-void expand_files(const string& unzip_path) {
-    ifstream input("zip_temp.tmp", ios::in | ios::binary);
+void expand_files(const std::string& input_file, const string& unzip_path) {
+    ifstream input(input_file, ios::in | ios::binary);
     filesystem::path p(unzip_path);
     if (!filesystem::exists(p))
         filesystem::create_directory(p);
@@ -175,16 +175,6 @@ void expand_files(const string& unzip_path) {
         output.close();
     }
     input.close();
-}
-
-int Hash(int key) {
-    key = ~key + (key << 15); // key = (key << 15) - key - 1;
-    key = key ^ (key >> 12);
-    key = key + (key << 2);
-    key = key ^ (key >> 4);
-    key = (key + (key << 3)) + (key << 11);
-    key = key ^ (key >> 16);
-    return key;
 }
 
 void get_huffman_code(TreeNode* root, HashMap<unsigned, string>& ans, const string& current = "") {
@@ -236,31 +226,139 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
     output.write((char*)(&code_bit_width), sizeof(code_bit_width));
     //Write append size.
     output.write((char*)(&append_size), sizeof(append_size));
-    BitArray out(code_bit_width);
-    for (const auto& word : data) {
-        const auto& code = dict[word];
-        for (const auto& item : code) out.push_back(item);
-    }
     //Write size of the zip dictionary.
     unsigned dict_size = dict.size();
     output.write((char*)(&dict_size), sizeof(dict_size));
     //Write the zip dictionary.
     for (const auto& word : dict) {
-        //Write the size of the Huffman code of the word.
-        unsigned code_size = word.value.size();
-        output.write((char*)(&code_size), sizeof(code_size));
-        //Write the code.
         BitArray code(code_bit_width);
         for (const auto& item : word.value) code.push_back(item);
         auto code_out = code.get_data();
+        //Write the size of the BitArray of the code.
+        unsigned size = code_out.size();
+        output.write((char*)(&size), sizeof(size));
+        //Write bit_left of the BitArray.
+        output.write((char*)(&code.bit_left), sizeof(code.bit_left));
+        //Write the code.
         output.write((char*)code_out.c_array(), code_out.size() * sizeof(char));
-        //Write the word.
         BitArray ori_word(4);
         for (int i = basic_unit_size / 4 - 1; i >= 0; --i) {
-            unsigned tmp = (word.key >> (i * 4)) - word.key % (1 << ((i - 1) * 4));
+            unsigned tmp = (word.key >> (i * 4)) - ((word.key >> ((i + 1) * 4)) << ((i + 1) * 4));
             ori_word.push_back(tmp);
         }
+        const auto& out_word = ori_word.get_data();
+        //Write the size of the BitArray of the word.
+        unsigned word_size = out_word.size();
+        output.write((char*)(&word_size), sizeof(word_size));
+        //Write bit_left of the BitArray.
+        output.write((char*)(&ori_word.bit_left), sizeof(ori_word.bit_left));
+        //Write the word.
+        output.write((char*)out_word.c_array(), out_word.size() * sizeof(char));
     }
+    BitArray out(code_bit_width);
+    for (const auto& word : data) {
+        const auto& code = dict[word];
+        for (const auto& item : code) out.push_back(item);
+    }
+    const auto& out_file = out.get_data();
+    //Write the size of the BitArray of the zipped file.
+    auto size = out_file.size();
+    output.write((char*)(&size), sizeof(size));
+    //Write bit_left of the BitArray.
+    output.write((char*)(&out.bit_left), sizeof(out.bit_left));
+    //Write the zipped file.
+    output.write((char*)out_file.c_array(), output_file.size() * sizeof(char));
     output.close();
+    return true;
+}
+
+bool unzip_file(const string& input_file, const string& output_path) {
+    try {
+        filesystem::path file_path(input_file);
+        filesystem::file_size(file_path);
+    }
+    catch (const filesystem::filesystem_error& e) {
+        auto err = string(e.what());
+        cerr << "Huffman Zip: " << err.substr(err.find("file_size:") + 11) << endl;
+        return false;
+    }
+    ifstream input(input_file, ios::in | ios::binary);
+    //Read flag.
+    unsigned char flag;
+    input.read((char*)(&flag), sizeof(flag));
+    if (flag == 0) {
+        expand_files(input_file, output_path);
+        return true;
+    }
+    //Read basic unit size.
+    short basic_unit_size;
+    input.read((char*)(&basic_unit_size), sizeof(basic_unit_size));
+    //Read code bit-width.
+    short code_bit_width;
+    input.read((char*)(&code_bit_width), sizeof(code_bit_width));
+    //Read append size.
+    int append_size;
+    input.read((char*)(&append_size), sizeof(append_size));
+    //Read size of the zip dictionary.
+    unsigned dict_size;
+    input.read((char*)(&dict_size), sizeof(dict_size));
+    //Read the zip dictionary.
+    HashMap<string, unsigned> anti_dict;
+    for (unsigned i = 0; i < dict_size; ++i) {
+        //Read the size of the BitArray of the code.
+        unsigned code_size;
+        input.read((char*)(&code_size), sizeof(code_size));
+        //Read bit_left of the BitArray.
+        int code_bit_left;
+        input.read((char*)(&code_bit_left), sizeof(code_bit_left));
+        //Read the code.
+        auto* code = new unsigned char[code_size];
+        input.read((char*)code, code_size * sizeof(char));
+        //Read the size of the BitArray of the word.
+        unsigned word_size;
+        input.read((char*)(&word_size), sizeof(word_size));
+        //Read bit_left of the BitArray.
+        int word_bit_left;
+        input.read((char*)(&word_bit_left), sizeof(word_bit_left));
+        //Read the code.
+        auto* word = new unsigned char[code_size];
+        input.read((char*)word, word_size * sizeof(char));
+        BitArray code_array(code_bit_width, code, code_size, code_bit_left),
+                word_array(4, word, word_size, word_bit_left);
+        string ins_code;
+        for (unsigned j = 0; j < code_size; ++j) ins_code.push_back(code_array[j]);
+        unsigned ins_word = 0;
+        for (unsigned j = word_size - 1; j >= 0; --j)
+            ins_word += (word_array[j] << (4 * j));
+        anti_dict.insert(ins_code, ins_word);
+    }
+    //Read the size of the BitArray of the zipped file.
+    unsigned size;
+    input.read((char*)(&size), sizeof(size));
+    //Read bit_left of the BitArray.
+    int zipped_file_bit_left;
+    input.read((char*)(&zipped_file_bit_left), sizeof(zipped_file_bit_left));
+    //Read the zipped file.
+    auto* zipped_file = new unsigned char[size];
+    input.read((char*)zipped_file, size * sizeof(unsigned char));
+    input.close();
+    BitArray zipped_file_array(code_bit_width, zipped_file, size, zipped_file_bit_left);
+    BitArray output_file(4);
+    string probe;
+    for (unsigned i = 0; i < size; ++i) {
+        probe.push_back(zipped_file_array[i]);
+        auto word = anti_dict.find(probe);
+        if (!word) continue;
+        for (int j = basic_unit_size / 4 - 1; j >= 0; --j) {
+            unsigned tmp = (*word >> (j * 4)) - ((*word >> ((j + 1) * 4)) << ((j + 1) * 4));
+            output_file.push_back(tmp);
+        }
+        probe = "";
+    }
+    //Write output temporary file.
+    ofstream output("zip_temp.tmp", ios::out | ios::binary);
+    const auto& data = output_file.get_data();
+    output.write((char*)data.c_array(), data.size() * sizeof(char));
+    expand_files("zip_temp.zip", output_path);
     return true;
 }

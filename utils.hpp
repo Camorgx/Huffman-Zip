@@ -15,9 +15,6 @@ std::string get_help(const std::string& program_name);
 //Pack up files to a single file.
 bool pack_up_files(const Vector<std::string>& input_file, const std::string& filename = "zip_temp.tmp");
 
-//Expand packed files.
-void expand_files(const std::string& unzip_path);
-
 //Get data from the input file, store it to an int array and return the array.
 Vector<unsigned> prepare_for_zip(const std::string& file_name, unsigned basic_unit_size, int& append_size);
 
@@ -31,5 +28,7 @@ HashMap<unsigned, std::string> get_zip_dictionary(PriorityQueue_Pointers<TreeNod
 
 bool zip_files(const std::string& output_file, HashMap<unsigned, std::string>& dict,
                const Vector<unsigned>& data, int branch = 2, short basic_unit_size = 8, int append_size = 0);
+
+bool unzip_file(const std::string& input_file, const std::string& output_path);
 
 #endif //HUFFMAN_ZIP_UTILS_HPP

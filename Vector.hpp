@@ -20,6 +20,9 @@ class Vector {
     size_t array_size = 0;
 public:
     Vector() = default;
+    Vector(DataType* data, unsigned size) {
+        dat = data; actual_size = array_size = size;
+    }
     Vector(Vector<DataType>&& b) noexcept {
         dat = b.dat; 
         actual_size = b.actual_size;
