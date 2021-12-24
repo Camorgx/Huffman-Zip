@@ -11,9 +11,9 @@ int Hash(int key) {
     return key;
 }
 
-int Hash(const string& key) {
-    int ans = 0;
-    for (int i = 0; i < key.size(); ++i)
+unsigned Hash(const string& key) {
+    unsigned ans = 0;
+    for (unsigned i = 0; i < key.size(); ++i)
         ans = (ans * 131 + key[i]) % 19491001;
     return ans;
 }

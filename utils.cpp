@@ -160,6 +160,8 @@ void expand_files(const std::string& input_file, const string& unzip_path) {
     if (!filesystem::exists(p))
         filesystem::create_directory(p);
     short num_of_input;
+    unsigned char flag;
+    input.read((char*)(&flag), sizeof(flag));
     //Read num of files.
     input.read((char*)(&num_of_input), sizeof(num_of_input));
     for (int i = 0; i < num_of_input; ++i) {
@@ -239,6 +241,10 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
 #endif //DEBUG_UTILS
     //Write the zip dictionary.
     for (const auto& word : dict) {
+        cout << word.key << ' ';
+        for (const auto& item : word.value)
+            cout << int(item);
+        cout << endl;
         BitArray code(code_bit_width);
         for (const auto& item : word.value) code.push_back(item);
         auto code_out = code.get_data();
@@ -285,7 +291,7 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
     }
     const auto& out_file = out.get_data();
     //Write the size of the BitArray of the zipped file.
-    auto size = out_file.size();
+    unsigned size = out_file.size();
     output.write((char*)(&size), sizeof(size));
     //Write bit_left of the BitArray.
     output.write((char*)(&out.bit_left), sizeof(out.bit_left));
@@ -326,7 +332,7 @@ bool unzip_file(const string& input_file, const string& output_path) {
     unsigned dict_size;
     input.read((char*)(&dict_size), sizeof(dict_size));
     //Read the zip dictionary.
-    HashMap<string, unsigned> anti_dict;
+    HashMap<Vector<unsigned char>, BitArray> anti_dict;
     for (unsigned i = 0; i < dict_size; ++i) {
         //Read the size of the BitArray of the code.
         unsigned code_size;
@@ -343,17 +349,19 @@ bool unzip_file(const string& input_file, const string& output_path) {
         //Read bit_left of the BitArray.
         int word_bit_left;
         input.read((char*)(&word_bit_left), sizeof(word_bit_left));
-        //Read the code.
+        //Read the word.
         auto* word = new unsigned char[code_size];
         input.read((char*)word, word_size * sizeof(char));
         BitArray code_array(code_bit_width, code, code_size, code_bit_left),
                 word_array(4, word, word_size, word_bit_left);
-        string ins_code;
-        for (unsigned j = 0; j < code_size; ++j) ins_code.push_back(code_array[j]);
-        unsigned ins_word = 0;
-        for (unsigned j = word_size - 1; j >= 0; --j)
-            ins_word += (word_array[j] << (4 * j));
-        anti_dict.insert(ins_code, ins_word);
+        Vector<unsigned char> ins_code;
+        for (unsigned j = 0; j < code_array.size(); ++j) ins_code.push_back(code_array[j]);
+#ifdef DEBUG_UTILS
+        for (const auto& item : ins_code)
+            cout << int(item);
+        cout << endl;
+#endif
+        anti_dict.insert(ins_code, word_array);
     }
     //Read the size of the BitArray of the zipped file.
     unsigned size;
@@ -367,21 +375,25 @@ bool unzip_file(const string& input_file, const string& output_path) {
     input.close();
     BitArray zipped_file_array(code_bit_width, zipped_file, size, zipped_file_bit_left);
     BitArray output_file(4);
-    string probe;
-    for (unsigned i = 0; i < size; ++i) {
+    Vector<unsigned char> probe;
+    for (unsigned i = 0; i < zipped_file_array.size(); ++i) {
         probe.push_back(zipped_file_array[i]);
         auto word = anti_dict.find(probe);
         if (!word) continue;
-        for (int j = basic_unit_size / 4 - 1; j >= 0; --j) {
-            unsigned tmp = (*word >> (j * 4)) - ((*word >> ((j + 1) * 4)) << ((j + 1) * 4));
-            output_file.push_back(tmp);
-        }
-        probe = "";
+#ifdef DEBUG_UTILS
+        for (const auto& item : probe)
+            cout << int(item);
+        cout << endl;
+#endif
+        for (unsigned j = 0; j < word->size(); ++j)
+            output_file.push_back(word->operator[](j));
+        probe.clear();
     }
     //Write output temporary file.
     ofstream output("zip_temp.tmp", ios::out | ios::binary);
     const auto& data = output_file.get_data();
     output.write((char*)data.c_array(), data.size() * sizeof(char));
-    expand_files("zip_temp.zip", output_path);
+    output.close();
+    expand_files("zip_temp.tmp", output_path);
     return true;
 }

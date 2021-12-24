@@ -21,7 +21,10 @@ class Vector {
 public:
     Vector() = default;
     Vector(DataType* data, unsigned size) {
-        dat = data; actual_size = array_size = size;
+        actual_size = array_size = size;
+        dat = new DataType[actual_size];
+        for (unsigned i = 0; i < array_size; ++i)
+            dat[i] = data[i];
     }
     Vector(Vector<DataType>&& b) noexcept {
         dat = b.dat; 
@@ -54,7 +57,7 @@ public:
     bool operator==(const Vector<DataType>& b) const {
         if (dat == b.dat) return true;
         if (array_size != b.array_size) return false;
-        for (int i = 0; i < array_size; ++i)
+        for (unsigned i = 0; i < array_size; ++i)
             if (dat[i] != b.dat[i]) return false;
         return true;
     }
@@ -67,6 +70,7 @@ public:
     bool empty() const { return array_size == 0; }
     DataType* begin() const { return dat; }
     DataType* end() const { return dat + array_size; }
+    void clear() { array_size = 0; }
     void push_back(const DataType& x) {
         if (actual_size == 0) {
             actual_size = 8;

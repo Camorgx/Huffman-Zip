@@ -18,7 +18,7 @@ public:
     BitArray(int width, unsigned char* data, unsigned size, int bit_left)
         : data(data, size), item_width(width), bit_left(bit_left) {}
 
-    char operator[](int index) const;
+    unsigned char operator[](int index) const;
 
     size_t size() const;
     bool empty() const;

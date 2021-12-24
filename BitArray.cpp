@@ -1,12 +1,12 @@
 #include "BitArray.hpp"
 
-char BitArray::operator[](int index) const {
-    if (index >= int(size()))
+unsigned char BitArray::operator[](int index) const {
+    if (index >= size())
         throw VectorError("Array out of bounds.");
     int pos = (index + 1) * item_width / 8;
     int e_pos = (index + 1) * item_width % 8;
     if (e_pos == 0) { --pos; e_pos = 8; }
-    char ans = 0;
+    unsigned char ans = 0;
     ans += data[pos] >> (8 - e_pos);
     if (e_pos < item_width) ans += (data[pos - 1] % (1 << (item_width - e_pos))) << e_pos;
     if (e_pos > item_width) ans %= (1 << item_width);

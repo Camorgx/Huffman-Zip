@@ -83,7 +83,7 @@ public:
             }
         }
     }
-    ValueType* find(KeyType key) {
+    ValueType* find(const KeyType& key) {
         //The function Hash must have return type int (or unsigned).
         int index = Hash(key) % table_size;
         if (!table[index]) return nullptr;
