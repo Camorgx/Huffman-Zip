@@ -18,10 +18,10 @@ struct TreeNode {
 
     TreeNode() = default;
     explicit TreeNode(const NodeData& data, int size = 2) : size(size), data(data) {
-        sons = new TreeNode*[deg];
+        sons = new TreeNode*[size];
     }
     TreeNode(unsigned word, int freq, int size = 2) : size(size), data(word, freq) {
-        sons = new TreeNode*[deg];
+        sons = new TreeNode*[size];
     }
     ~TreeNode() { delete[] sons; }
 

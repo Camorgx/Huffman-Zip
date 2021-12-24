@@ -295,11 +295,13 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
     const auto& out_file = out.get_data();
     //Write the size of the BitArray of the zipped file.
     unsigned size = out_file.size();
+#ifndef NO_HEAD
     output.write((char*)(&size), sizeof(size));
     //Write bit_left of the BitArray.
     output.write((char*)(&out.bit_left), sizeof(out.bit_left));
+#endif
     //Write the zipped file.
-    output.write((char*)out_file.c_array(), output_file.size() * sizeof(char));
+    output.write((char*)out_file.c_array(), size * sizeof(char));
     output.close();
     return true;
 }
