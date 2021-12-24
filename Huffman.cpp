@@ -11,7 +11,7 @@ void display_tree(TreeNode* root, int depth) {
 }
 
 TreeNode* build_tree(PriorityQueue_Pointers<TreeNode*>& word_freq, int branch) {
-    while (int(word_freq.size()) >= branch) {
+    while (word_freq.size() >= branch) {
         auto* root = new TreeNode(-1, 0, branch);
         for (int i = 0; i < branch; ++i) {
             auto data = word_freq.top(); word_freq.pop();

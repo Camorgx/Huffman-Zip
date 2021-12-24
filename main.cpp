@@ -52,8 +52,8 @@ int main(int argc, const char* argv[]) {
             else if (string(argv[i] + 2) == "branch") {
                 float tmp;
                 auto res = sscanf(argv[++i], "%f", &tmp);
-                size = int(branch);
-                if (res != 1 || tmp < 0 || float(size) != tmp) {
+                branch = int(tmp);
+                if (res != 1 || tmp < 0 || float(branch) != tmp) {
                     cerr << "Huffman Zip: Invalid size number: \"" << argv[i] << '\"' << endl;
                     return 1;
                 }

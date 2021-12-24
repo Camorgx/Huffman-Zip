@@ -134,7 +134,8 @@ bool pack_up_files(const Vector<string>& input_files, const string& filename) {
     output.write((char*)(&num_of_input), sizeof(num_of_input));
     for (const auto& item : input_files) {
         filesystem::path file_path(item);
-        auto file_name = (const char*)filesystem::relative(file_path).c_str();
+        string name = item.substr(item.find_last_of('/') + 1);
+        const char* file_name = name.c_str();
         short length = strlen(file_name);
         ifstream fin(item, ios::in | ios::binary);
         int file_size = filesystem::file_size(file_path);
@@ -241,10 +242,12 @@ bool zip_files(const string& output_file, HashMap<unsigned, string>& dict,
 #endif //DEBUG_UTILS
     //Write the zip dictionary.
     for (const auto& word : dict) {
+#ifdef DEBUG_UTILS
         cout << word.key << ' ';
         for (const auto& item : word.value)
             cout << int(item);
         cout << endl;
+#endif
         BitArray code(code_bit_width);
         for (const auto& item : word.value) code.push_back(item);
         auto code_out = code.get_data();
