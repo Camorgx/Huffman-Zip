@@ -100,12 +100,12 @@ public:
         return {-1, nullptr, table};
     }
     iterator end() { return {-1, nullptr, table}; }
-    bool empty() { return begin().data; }
+    bool empty() { return (size() == 0); }
     size_t size() const { return actual_size; }
 
     ValueType& operator[](KeyType key) {
         auto ans = find(key);
-        return ans ? *ans : insert(key, 0)->value;
+        return ans ? *ans : insert(key, ValueType())->value;
     }
 };
 

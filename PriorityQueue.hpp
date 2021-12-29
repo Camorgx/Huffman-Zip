@@ -45,8 +45,6 @@ public:
         dat.push_back(x);
         swim(dat.size() - 1);
     }
-    auto begin() const { return dat.begin() + 1; }
-    auto end() const { return dat.end(); }
     size_t size() const { return dat.size() - 1; }
     bool empty() const { return dat.size() == 1; }
 };

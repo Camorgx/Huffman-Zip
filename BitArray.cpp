@@ -33,6 +33,8 @@ void BitArray::set_value(int index, unsigned value) {
 }
 
 void BitArray::push_back(unsigned value) {
+    if (value >= (1 << item_width))
+        throw std::runtime_error("BitArray: Value out of range.");
     if (bit_left + item_width <= 8) {
         data[data.size() - 1] += value << (8 - bit_left - item_width);
         bit_left += item_width;
