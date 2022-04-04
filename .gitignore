@@ -5,3 +5,4 @@ out
 .vs
 build
 **/*.DS_Store
+.vscode/
