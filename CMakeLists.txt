@@ -9,5 +9,6 @@ elseif (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif ()
 
-add_executable(Huffman_Zip main.cpp utils.cpp "Huffman.cpp" Vector.hpp
-        PriorityQueue.hpp Queue.hpp HashMap.hpp test.hpp BitArray.cpp Hash.cpp Hash.hpp)
+include_directories(Huffman_Zip include/)
+
+add_executable(Huffman_Zip src/main.cpp src/utils.cpp src/Huffman.cpp src/BitArray.cpp src/Hash.cpp)
